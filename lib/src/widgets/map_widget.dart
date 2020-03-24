@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as dev;
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/cupertino.dart';
@@ -21,16 +20,22 @@ class MapWidgetState extends State<MapWidget> {
   StatefulMapController statefulMapController;
   StreamSubscription<StatefulMapControllerStateChange> listener;
 
+  @override
+  void initState() {
+    mapController = MapController();
+    statefulMapController = StatefulMapController(mapController: mapController);
+    statefulMapController.onReady.then((_) => loadData());
+    listener = statefulMapController.changeFeed.listen((change) => {});
+    super.initState();
+  }
+
   void loadData() async {
-      final data =
-      await rootBundle.loadString('assets/maps/provincias.geojson');
-      await statefulMapController.fromGeoJson(data,
-          verbose: true);
+    final data = await rootBundle.loadString('assets/maps/provincias.geojson');
+    await statefulMapController.fromGeoJson(data, verbose: true);
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return BlocProvider(
       create: (context) => MapBloc(),
       child: BlocBuilder<MapBloc, MapState>(
@@ -50,25 +55,19 @@ class MapWidgetState extends State<MapWidget> {
             );
           }
           if (state is LoadedMapState) {
-            mapController = MapController();
-            statefulMapController =
-                StatefulMapController(mapController: mapController);
-            statefulMapController.onReady.then((_) => loadData());
-            listener = statefulMapController.changeFeed.listen((change) {});
             return Container(
-              child: SafeArea(
-                  child: Stack(children: <Widget>[
-                FlutterMap(
-                  mapController: mapController,
-                  layers: [
-                    MarkerLayerOptions(markers: statefulMapController.markers),
-                    PolylineLayerOptions(
-                        polylines: statefulMapController.lines),
-                    PolygonLayerOptions(
-                        polygons: statefulMapController.polygons)
-                  ],
+              height: 100,
+              child: FlutterMap(
+                mapController: mapController,
+                options: MapOptions(
+                  center: LatLng(23.113592, -82.366592),
                 ),
-              ])),
+                layers: [
+                  MarkerLayerOptions(markers: statefulMapController.markers),
+                  PolylineLayerOptions(polylines: statefulMapController.lines),
+                  PolygonLayerOptions(polygons: statefulMapController.polygons)
+                ],
+              ),
             );
           }
           return Container();
