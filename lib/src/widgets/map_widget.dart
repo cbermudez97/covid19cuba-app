@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 
-import 'package:covid19cuba/src/blocs/map_bloc.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +20,13 @@ class MapWidgetState extends State<MapWidget> {
   MapController mapController;
   StatefulMapController statefulMapController;
   StreamSubscription<StatefulMapControllerStateChange> listener;
+
+  void loadData() async {
+      final data =
+      await rootBundle.loadString('assets/maps/provincias.geojson');
+      await statefulMapController.fromGeoJson(data,
+          verbose: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,20 +53,13 @@ class MapWidgetState extends State<MapWidget> {
             mapController = MapController();
             statefulMapController =
                 StatefulMapController(mapController: mapController);
-            statefulMapController.onReady.then((_) async {
-              await statefulMapController.fromGeoJson(
-                  'assets/maps/provincias.geojson'); // I should use the state property somehow
-              // Maybe directly drawing all the data from state.geo
-            });
-            listener = statefulMapController.changeFeed.listen((change) {
-              dev.log('Something changed on the map!');
-            });
+            statefulMapController.onReady.then((_) => loadData());
+            listener = statefulMapController.changeFeed.listen((change) {});
             return Container(
               child: SafeArea(
                   child: Stack(children: <Widget>[
                 FlutterMap(
                   mapController: mapController,
-                  options: MapOptions(),
                   layers: [
                     MarkerLayerOptions(markers: statefulMapController.markers),
                     PolylineLayerOptions(
@@ -79,7 +79,7 @@ class MapWidgetState extends State<MapWidget> {
 
   @override
   void dispose() {
-    listener.cancel();
+    if (listener != null) listener.cancel();
     super.dispose();
   }
 }
