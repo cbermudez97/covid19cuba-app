@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:covid19cuba/src/blocs/blocs.dart';
 import 'package:covid19cuba/src/models/models.dart';
+import 'package:covid19cuba/src/widgets/widgets.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -514,6 +515,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
+                    MapWidget(),
                   ],
                 );
               }
